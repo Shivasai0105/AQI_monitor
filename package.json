@@ -4,8 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "node server.js",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist",
+    "build": "if not exist dist mkdir dist && xcopy public\\* dist\\ /E /I /Y && copy server.js dist\\ && copy package.json dist\\ && copy package-lock.json dist\\",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "homepage": "https://Shivasai0105.github.io/AQI_monitor",
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -21,5 +26,8 @@
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.20.0",
     "nodemailer": "^7.0.9"
+  },
+  "devDependencies": {
+    "gh-pages": "^6.3.0"
   }
 }

@@ -1,3 +1,5 @@
+# AQI_monitor
+=======
 # MongoDB Signup/Login with AQI Dashboard
 
 A full-stack web application that provides user authentication (signup/login) with MongoDB and displays real-time Air Quality Index (AQI) data on a dashboard.
@@ -295,3 +297,6 @@ ISC License
 3. Commit changes
 4. Push to branch
 5. Create Pull Request
+=======
+# AQI_monitor
+>>>>>>> acd6107104e0137f67b82b5363188d43335e3061

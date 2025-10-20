@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AQI Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f8f8;
+        }
+
+        .header {
+            background: #000;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .header .close-icon, .header .menu-icon {
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .main-layout {
+            display: flex;
+            height: calc(100vh - 120px);
+        }
+
+        .sidebar {
+            width: 220px;
+            background: #1a2b3c;
+            padding: 20px 0;
+        }
+
+        .sidebar-item {
+            padding: 12px 20px;
+            color: white;
+            cursor: pointer;
+            border-bottom: 1px solid #333;
+            transition: background 0.3s;
+        }
+
+        .sidebar-item:hover, .sidebar-item.active {
+            background: #2c3e50;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .user-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .user-info h2 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .header-card {
+            background: linear-gradient(135deg, #f0fff0, #d0f0e0);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .aqi-row {
+            display: flex;
+            justify-content: space-around;
+            gap: 15px;
+        }
+
+        .aqi-box {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            flex: 1;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .aqi-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .aqi-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0 10px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 10px;
+            background: #eee;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .tab.active {
+            background: #d0f0c0;
+            font-weight: bold;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            border: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .tip-box {
+            background: #ffcdd2;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .tip-text {
+            color: #d32f2f;
+            font-size: 14px;
+        }
+
+        .actions-row {
+            display: flex;
+            justify-content: space-around;
+            gap: 10px;
+        }
+
+        .action-item {
+            text-align: center;
+            flex: 1;
+        }
+
+        .action-icon {
+            font-size: 40px;
+            margin-bottom: 8px;
+        }
+        
+        .action-label {
+            font-size: 12px;
+            color: #555;
+        }
+
+        .setting-item {
+            padding: 15px 0;
+            border-bottom: 1px solid #ddd;
+            font-size: 16px;
+            color: #333;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .setting-item:hover {
+            background: #f5f5f5;
+            padding-left: 10px;
+        }
+
+        .logout-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #c82333;
+        }
+
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <span class="close-icon" onclick="logout()">✕</span>
+        <h1>AQI Dashboard</h1>
+        <span class="menu-icon">⋯</span>
+    </div>
+
+    <div class="main-layout">
+        <div class="sidebar">
+            <div class="sidebar-item active" onclick="showSection('home')">
+                <i class="fas fa-home"></i> Home
+            </div>
+            <div class="sidebar-item" onclick="showSection('trends')">
+                <i class="fas fa-chart-line"></i> Trends Graph
+            </div>
+            <div class="sidebar-item" onclick="showSection('heatmap')">
+                <i class="fas fa-map-marked-alt"></i> Heatmap
+            </div>
+            <div class="sidebar-item" onclick="showSection('health')">
+                <i class="fas fa-heartbeat"></i> Health Tips Card
+            </div>
+            <div class="sidebar-item" onclick="showSection('actions')">
+                <i class="fas fa-exclamation-triangle"></i> Action Buttons
+            </div>
+            <div class="sidebar-item" onclick="showSection('settings')">
+                <i class="fas fa-cog"></i> Settings
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="user-info">
+                <h2>Welcome, <span id="userName"></span>!</h2>
+                <p>Check your air quality dashboard</p>
+                <p id="lastLoginInfo" style="font-size:14px;"></p>
+                <div id="quickTip" style="background:#fff3cd;color:#856404;padding:10px;border-radius:8px;margin-top:10px;font-size:15px;"></div>
+            </div>
+
+            <div class="header-card">
+                <div class="section-header" style="margin-top: 0;">
+                    <h2 class="section-title">Current AQI + Pollutants</h2>
+                </div>
+                <div class="aqi-row">
+                    <div class="aqi-box">
+                        <div class="aqi-value" id="aqiValue">--</div>
+                        <div class="aqi-label">AQI</div>
+                    </div>
+                    <div class="aqi-box">
+                        <div class="aqi-value" id="pm25Value">--</div>
+                        <div class="aqi-label">PM2.5 µg/m³</div>
+                    </div>
+                    <div class="aqi-box">
+                        <div class="aqi-value" id="pm10Value">--</div>
+                        <div class="aqi-label">PM10 µg/m³</div>
+                    </div>
+                    <div class="aqi-box">
+                        <div class="aqi-value" id="coValue">--</div>
+                        <div class="aqi-label">CO /h</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Home Section -->
+            <div id="home" class="content-section active">
+                <div class="section-header">
+                    <h2 class="section-title">Home</h2>
+                </div>
+                <div class="card" style="background: #e3f2fd;">
+                    <h3 class="card-title">Current Status</h3>
+                    <div class="info-row" style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 16px;">
+                        <span><i class="fas fa-calendar-alt"></i> <strong>Date:</strong></span>
+                        <span id="currentDate"></span>
+                    </div>
+                    <div class="info-row" style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 16px;">
+                        <span><i class="fas fa-clock"></i> <strong>Time:</strong></span>
+                        <span id="currentTime"></span>
+                    </div>
+                    <div class="info-row" style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 16px;">
+                        <span><i class="fas fa-map-marker-alt"></i> <strong>Location:</strong></span>
+                        <span id="userLocation">Fetching...</span>
+                    </div>
+                    <div class="info-row" style="display: flex; justify-content: space-between; font-size: 16px;">
+                        <span><i class="fas fa-wind"></i> <strong>Current AQI:</strong></span>
+                        <span id="locationAqi">Fetching...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trends & Forecast Section -->
+            <div id="trends" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">Trends Graph (Daily/Weekly/Forecast)</h2>
+                </div>
+
+                <div class="tabs">
+                    <button class="tab active">Daily</button>
+                    <button class="tab">Weekly</button>
+                    <button class="tab">Forecast</button>
+                </div>
+
+                <div class="chart-container">
+                    <i class="fas fa-chart-area" style="font-size: 60px; color: #ccc;"></i>
+                    <p style="margin-top: 10px; color: #888;">📈 Graph Placeholder</p>
+                    <p style="color: #999; font-size: 12px;">Use Chart.js or similar library for visualization</p>
+                </div>
+            </div>
+
+            <!-- Heatmap Section -->
+            <div id="heatmap" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">Heatmap</h2>
+                </div>
+                <div class="chart-container" id="map" style="height: 400px;">
+                </div>
+            </div>
+
+            <!-- Health Tips Section -->
+            <div id="health" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">Health Tips Card</h2>
+                </div>
+                <div class="card" style="background: #ffebee;">
+                    <h3 class="card-title">Dynamic Health Recommendations</h3>
+                    <div class="tip-box">
+                        <p class="tip-text"><strong>Current AQI: 142 (Unhealthy for Sensitive Groups)</strong>. It's recommended to reduce prolonged or heavy exertion outdoors.</p>
+                    </div>
+                     <div class="tip-box" style="background: #e3f2fd;">
+                        <p class="tip-text" style="color: #1976d2;">Sensitive individuals, and children, should avoid outdoor activity.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons Section -->
+            <div id="actions" class="content-section">
+                 <div class="section-header">
+                    <h2 class="section-title">Action Buttons</h2>
+                </div>
+                <div class="card" style="background: #e8f5e9;">
+                    <div class="actions-row">
+                        <div class="action-item">
+                            <div class="action-icon">😷</div>
+                            <div class="action-label">Wear a mask</div>
+                        </div>
+                        <div class="action-item">
+                            <div class="action-icon">🌪</div>
+                            <div class="action-label">Use air purifier</div>
+                        </div>
+                        <div class="action-item">
+                            <div class="action-icon">🪟</div>
+                            <div class="action-label">Keep windows closed</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Section -->
+            <div id="settings" class="content-section">
+                <div class="card" style="background: #f3e5f5;">
+                    <h3 class="card-title">Settings</h3>
+                    <div class="setting-item">
+                        <i class="fas fa-user"></i> Account Settings
+                    </div>
+                    <div class="setting-item">
+                        <i class="fas fa-bell"></i> Notifications
+                    </div>
+                    <div class="setting-item">
+                        <i class="fas fa-info-circle"></i> About App
+                    </div>
+                    <div class="setting-item" style="border: none; margin-top: 20px;">
+                        <button class="logout-btn" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check if user is logged in
+        window.onload = function() {
+            const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+            if (!currentUser) {
+                window.location.href = 'index.html';
+                return;
+            }
+            document.getElementById('userName').textContent = currentUser.name || currentUser.username;
+            // Show last login info
+            const lastLogin = sessionStorage.getItem('lastLogin');
+            if (lastLogin) {
+                document.getElementById('lastLoginInfo').textContent = `Last login: ${lastLogin}`;
+            }
+
+            // Set date and time
+            const now = new Date();
+            document.getElementById('currentDate').textContent = now.toLocaleDateString();
+            document.getElementById('currentTime').textContent = now.toLocaleTimeString();
+
+            // Show quick tip
+            const tips = [
+                "Avoid outdoor exercise when AQI is high.",
+                "Use air purifiers indoors for better air quality.",
+                "Keep windows closed on high pollution days.",
+                "Wear a mask if you must go outside.",
+                "Check AQI before planning outdoor activities.",
+                "Ventilate your home when AQI improves.",
+                "Sensitive groups should take extra precautions."
+            ];
+            document.getElementById('quickTip').textContent = "Quick Tip: " + tips[Math.floor(Math.random() * tips.length)];
+
+            // Get location and AQI
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    const { latitude, longitude } = position.coords;
+                    // Reverse geocoding to get location name (try multiple services for better accuracy)
+                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            const city = data.address?.city || data.address?.town || data.address?.village || data.address?.municipality;
+                            const state = data.address?.state || data.address?.region;
+                            const country = data.address?.country;
+                            let locationName = 'Unknown location';
+                            if (city && state) {
+                                locationName = `${city}, ${state}`;
+                            } else if (city) {
+                                locationName = city;
+                            } else if (state) {
+                                locationName = state;
+                            }
+                            document.getElementById('userLocation').textContent = locationName;
+                        })
+                        .catch(() => {
+                            // Fallback to coordinates if geocoding fails
+                            document.getElementById('userLocation').textContent = `Lat: ${latitude.toFixed(4)}, Lon: ${longitude.toFixed(4)}`;
+                        });
+                    // Fetch AQI data from WAQI API
+                    fetch(`http://localhost:3000/api/aqi?lat=${latitude}&lon=${longitude}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status === "ok") {
+                                const aqi = data.data.aqi;
+                                const iaqi = data.data.iaqi || {};
+                                document.getElementById('locationAqi').textContent = aqi;
+                                const aqiValueEl = document.getElementById('aqiValue');
+                                aqiValueEl.textContent = aqi;
+                                document.getElementById('pm25Value').textContent = iaqi.pm25 ? iaqi.pm25.v : '--';
+                                document.getElementById('pm10Value').textContent = iaqi.pm10 ? iaqi.pm10.v : '--';
+                                document.getElementById('coValue').textContent = iaqi.co ? iaqi.co.v : '--';
+
+                                if (aqi <= 50) aqiValueEl.style.color = '#43a047'; // Good
+                                else if (aqi <= 100) aqiValueEl.style.color = '#fbc02d'; // Moderate
+                                else if (aqi <= 150) aqiValueEl.style.color = '#ffa726'; // Unhealthy for Sensitive Groups
+                                else if (aqi <= 200) aqiValueEl.style.color = '#e53935'; // Unhealthy
+                                else if (aqi <= 300) aqiValueEl.style.color = '#8e24aa'; // Very Unhealthy
+                                else aqiValueEl.style.color = '#6d4c41'; // Hazardous
+                            } else {
+                                document.getElementById('locationAqi').textContent = 'N/A';
+                            }
+                        })
+                        .catch(() => {
+                            document.getElementById('locationAqi').textContent = 'N/A';
+                        });
+
+                    // Initialize map
+                    const map = L.map('map').setView([latitude, longitude], 13);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    }).addTo(map);
+
+                    L.marker([latitude, longitude]).addTo(map)
+                        .bindPopup('Your current location.')
+                        .openPopup();
+                }, () => {
+                    document.getElementById('userLocation').textContent = 'Permission denied';
+                    document.getElementById('locationAqi').textContent = 'N/A';
+                });
+            } else {
+                document.getElementById('userLocation').textContent = 'Not supported';
+                document.getElementById('locationAqi').textContent = 'N/A';
+            }
+        };
+
+        // Show different sections
+        function showSection(sectionName) {
+            // Hide all sections
+            const sections = document.querySelectorAll('.content-section');
+            sections.forEach(section => section.classList.remove('active'));
+
+            // Remove active class from sidebar items
+            const sidebarItems = document.querySelectorAll('.sidebar-item');
+            sidebarItems.forEach(item => item.classList.remove('active'));
+
+            // Show selected section
+            // Show selected section and update sidebar
+            document.getElementById(sectionName).classList.add('active');
+            const sidebarMap = {
+                'home': 0,
+                'trends': 1,
+                'heatmap': 2,
+                'health': 3,
+                'actions': 4,
+                'settings': 5
+            };
+            sidebarItems[sidebarMap[sectionName]].classList.add('active');
+        }
+
+        // Tab switching
+        const tabs = document.querySelectorAll('.tab');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                tabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Logout function
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                sessionStorage.removeItem('currentUser');
+                window.location.href = 'index.html';
+            }
+        }
+    </script>
+</body>
+</html>

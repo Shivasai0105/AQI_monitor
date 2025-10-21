@@ -12,7 +12,8 @@ const port = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json()); // Use built-in body parser instead of deprecated body-parser
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'landing_page')));
+app.use('/app', express.static(path.join(__dirname, 'public')));
 
 // Rate limiting for auth endpoints
 const authLimiter = rateLimit({

@@ -1,6 +1,6 @@
 body {
-  background: linear-gradient(to right, #6a11cb, #2575fc);
-}
+background: #6298c4;
+background: linear-gradient(90deg, #ebf4f5, #b5c6e0, #99aceb);}
 
 body::after {
   content: "";
@@ -56,12 +56,16 @@ body::after {
   transform: translate(-50%, -50%);
   width: 800px;
   height: 500px;
-  box-shadow: 0px 0px 50px rgb(0, 0, 0);
+  /* box-shadow: 0px 0px 50px rgb(50, 50, 50); */
   background-size: cover;
   overflow: hidden;
   z-index: 4;
+  border-radius: 5px;
 }
+#container:hover{
+    box-shadow: 0px 0px 50px rgb(50, 50, 50);
 
+}
 #leftSide, #rightSide {
   padding: 20px 5px;
   top: 0;
@@ -92,6 +96,7 @@ label {
   position: relative;
   height: 100%;
   width: 100%;
+  /* border-radius: 10px; */
 }
 
 #signupContent {
@@ -105,10 +110,11 @@ label {
 }
 
 #loginBlock {
-  background: linear-gradient(to right, #6a11cb, #2575fc);
+  background: linear-gradient(to right, #9bf8f4, #6f7bf7);
   width: calc(100% - 200px);
   margin-left: 0px;
   overflow: hidden;
+  /* border-radius: 25%; */
 }
 
 input:not([type=button]) {
@@ -213,7 +219,7 @@ input[type=button][type=button]:hover {
   top: 0;
   left: 100%;
   width: calc(100% - 200px);
-  background: linear-gradient(to right, #6a11cb, #2575fc);
+  background: linear-gradient(to right, #9bf8f4, #6f7bf7);
   overflow: hidden;
 }
 

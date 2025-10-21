@@ -4,10 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "npm run build && cd dist && node server.js",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist",
-    "build": "if not exist dist mkdir dist && xcopy public\\* dist\\ /E /I /Y && copy server.js dist\\ && copy package.json dist\\ && copy package-lock.json dist\\",
+    "build": "if exist dist ( rd /s /q dist ) && mkdir dist && xcopy public dist\\public\\ /E /I /Y && xcopy landing_page dist\\landing_page\\ /E /I /Y && xcopy routes dist\\routes\\ /E /I /Y && copy server.js dist\\ && copy package.json dist\\ && copy package-lock.json dist\\",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "homepage": "https://Shivasai0105.github.io/AQI_monitor",

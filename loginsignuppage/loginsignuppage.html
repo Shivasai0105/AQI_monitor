@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login / Sign Up</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        #advice {
+            display: none;
+        }
+
+        #container {
+            position: relative;
+            width: 900px;
+            max-width: 100%;
+            height: 550px;
+            background: #0f3460;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+
+        #leftSide, #rightSide {
+            position: absolute;
+            width: 50%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            color: white;
+            transition: transform 0.6s ease;
+        }
+
+        #leftSide {
+            left: 0;
+            background: linear-gradient(135deg, #00adb5 0%, #0097a7 100%);
+        }
+
+        #rightSide {
+            right: 0;
+            background: linear-gradient(135deg, #533483 0%, #7b4397 100%);
+        }
+
+        .title {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .text {
+            font-size: 16px;
+            text-align: center;
+            opacity: 0.9;
+        }
+
+        #loginBlock, #signupBlock {
+            position: absolute;
+            width: 50%;
+            height: 100%;
+            background: #1a1a2e;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.6s ease;
+            z-index: 1;
+        }
+
+        #loginBlock {
+            left: 50%;
+        }
+
+        #signupBlock {
+            left: 0;
+            transform: translateX(-100%);
+        }
+
+        #loginContent, #signupContent {
+            width: 80%;
+        }
+
+        form {
+            width: 100%;
+        }
+
+        .wrapper {
+            position: relative;
+            margin-bottom: 25px;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="password"]:focus {
+            outline: none;
+            border-color: #00adb5;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        input[type="text"]::placeholder,
+        input[type="email"]::placeholder,
+        input[type="password"]::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        label {
+            position: absolute;
+            left: 15px;
+            top: -10px;
+            background: #1a1a2e;
+            padding: 0 5px;
+            color: #00adb5;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .show-password {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .show-password:hover {
+            color: #00adb5;
+        }
+
+        .far.fa-check-square {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #4caf50;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .wrapper.valid .far.fa-check-square {
+            opacity: 1;
+        }
+
+        #forgotPassword {
+            color: #00adb5;
+            text-decoration: none;
+            font-size: 13px;
+            display: block;
+            margin-bottom: 20px;
+            transition: color 0.3s;
+        }
+
+        #forgotPassword:hover {
+            color: #00d4dd;
+        }
+
+        input[type="button"],
+        input[type="submit"] {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #00adb5 0%, #0097a7 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 173, 181, 0.3);
+        }
+
+        input[type="button"]:hover,
+        input[type="submit"]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 173, 181, 0.4);
+        }
+
+        input[type="button"]:active,
+        input[type="submit"]:active {
+            transform: translateY(0);
+        }
+
+        .signup-link {
+            text-align: center;
+            margin-top: 20px;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+        }
+
+        .signup-link a {
+            color: #00adb5;
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+
+        .signup-link a:hover {
+            color: #00d4dd;
+        }
+
+        #bar {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 50%;
+            height: 100%;
+            overflow: hidden;
+            transition: left 0.6s ease, width 0.6s ease;
+        }
+
+        #mask {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 200%;
+            height: 100%;
+            transition: transform 0.6s ease;
+        }
+
+        #toggle {
+            position: relative;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(135deg, #00adb5 0%, #0097a7 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        #toggle:hover {
+            background: linear-gradient(135deg, #00d4dd 0%, #00b8c4 100%);
+        }
+
+        .dot {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.6s ease;
+        }
+
+        #loginText, #signupText {
+            position: absolute;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            transition: opacity 0.3s;
+        }
+
+        #loginText {
+            opacity: 1;
+        }
+
+        #signupText {
+            opacity: 0;
+        }
+
+        /* Active state */
+        body.signup-active #bar {
+            left: 0;
+        }
+
+        body.signup-active #mask {
+            transform: translateX(-50%);
+        }
+
+        body.signup-active #loginBlock {
+            transform: translateX(100%);
+        }
+
+        body.signup-active #signupBlock {
+            transform: translateX(0);
+        }
+
+        body.signup-active #loginText {
+            opacity: 0;
+        }
+
+        body.signup-active #signupText {
+            opacity: 1;
+        }
+
+        body.signup-active .dot {
+            transform: translateX(100%);
+        }
+
+        /* Social login */
+        .social-login {
+            margin-top: 25px;
+            text-align: center;
+        }
+
+        .social-text {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 13px;
+            margin-bottom: 15px;
+        }
+
+        .social-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .social-btn {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .social-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .password-strength {
+            margin-top: 8px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .strength-bar {
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        .strength-fill {
+            height: 100%;
+            width: 0;
+            transition: all 0.3s;
+            border-radius: 2px;
+        }
+
+        .message {
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .message.success {
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid rgba(76, 175, 80, 0.5);
+            color: #4caf50;
+        }
+
+        .message.error {
+            background: rgba(244, 67, 54, 0.2);
+            border: 1px solid rgba(244, 67, 54, 0.5);
+            color: #f44336;
+        }
+
+        @media (max-width: 768px) {
+            #container {
+                width: 100%;
+                height: auto;
+                min-height: 500px;
+            }
+
+            .title {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="leftSide">
+            <div class="title">New here?</div>
+            <div class="text">Create your own account now!</div>
+        </div>
+        
+        <div id="rightSide">
+            <div class="title">Coming back?</div>
+            <div class="text">If you already have an account you can log in.</div>
+        </div>
+        
+        <div id="loginBlock">
+            <div id="loginContent">
+                <div class="message" id="loginMessage"></div>
+                <form id="loginForm" name="loginForm">
+                    <div class="wrapper">
+                        <input type="text" id="login-username" placeholder="Enter username or email" required />
+                        <label for="login-username">Username or email</label>
+                    </div>
+                    <div class="wrapper">
+                        <input type="password" id="login-password" placeholder="Enter password" required />
+                        <label for="login-password">Password</label>
+                        <i class="fas fa-eye-slash show-password" data-target="login-password"></i>
+                    </div>
+                    <a href="#" id="forgotPassword">Forgot Password?</a>
+                    <input type="submit" value="Log In" />
+                    
+                    <div class="social-login">
+                        <div class="social-text">Or continue with</div>
+                        <div class="social-buttons">
+                            <button class="social-btn" type="button">
+                                <i class="fab fa-google"></i> Google
+                            </button>
+                            <button class="social-btn" type="button">
+                                <i class="fab fa-github"></i> GitHub
+                            </button>
+                        </div>
+                    </div>
+                    <div class="signup-link">
+                        Don't have an account? <a href="#" id="switchToSignup">Sign up</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div id="bar">
+            <div id="mask">
+                <div id="toggle">
+                    <div class="dot">.</div>
+                    <div id="loginText">Log&nbsp;In</div>
+                    <div id="signupText">Sign&nbsp;Up</div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="signupBlock">
+            <div id="signupContent">
+                <div class="message" id="signupMessage"></div>
+                <form id="signupForm" name="signupForm">
+                    <div class="wrapper">
+                        <input type="text" id="name" minlength="2" placeholder="Enter your name" required />
+                        <label for="name">Name</label>
+                        <i class="far fa-check-square"></i>
+                    </div>
+                    <div class="wrapper">
+                        <input type="text" id="signup-username" minlength="4" placeholder="Choose a username" required />
+                        <label for="signup-username">Username</label>
+                        <i class="far fa-check-square"></i>
+                    </div>
+                    <div class="wrapper">
+                        <input type="email" id="email" placeholder="Enter your email" required />
+                        <label for="email">Email</label>
+                        <i class="far fa-check-square"></i>
+                    </div>
+                    <div class="wrapper">      
+                        <input type="password" id="signup-password" minlength="6" placeholder="Create a password" required />
+                        <label for="signup-password">Password</label>
+                        <i class="fas fa-eye-slash show-password" data-target="signup-password"></i>
+                        <i class="far fa-check-square"></i>
+                        <div class="password-strength">
+                            <div class="strength-bar">
+                                <div class="strength-fill"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="submit" value="Sign up" />
+                    
+                    <div class="signup-link">
+                        Already have an account? <a href="#" id="switchToLogin">Log in</a>
+                    </div>
+                    
+                    <div class="social-login">
+                        <div class="social-text">Or sign up with</div>
+                        <div class="social-buttons">
+                            <button class="social-btn" type="button">
+                                <i class="fab fa-google"></i> Google
+                            </button>
+                            <button class="social-btn" type="button">
+                                <i class="fab fa-github"></i> GitHub
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Toggle between login and signup
+        function toggleToSignup() {
+            document.body.classList.add('signup-active');
+        }
+
+        function toggleToLogin() {
+            document.body.classList.remove('signup-active');
+        }
+
+        // Switch to signup
+        document.getElementById('switchToSignup').addEventListener('click', function(e) {
+            e.preventDefault();
+            toggleToSignup();
+        });
+
+        // Switch to login
+        document.getElementById('switchToLogin').addEventListener('click', function(e) {
+            e.preventDefault();
+            toggleToLogin();
+        });
+
+        // Toggle button in center
+        document.getElementById('toggle').addEventListener('click', function() {
+            document.body.classList.toggle('signup-active');
+        });
+
+        // Password visibility toggle
+        document.querySelectorAll('.show-password').forEach(icon => {
+            icon.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-target');
+                const passwordInput = document.getElementById(targetId);
+                
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    this.classList.remove('fa-eye-slash');
+                    this.classList.add('fa-eye');
+                } else {
+                    passwordInput.type = 'password';
+                    this.classList.remove('fa-eye');
+                    this.classList.add('fa-eye-slash');
+                }
+            });
+        });
+
+        // Input validation for signup
+        const signupInputs = ['name', 'signup-username', 'email', 'signup-password'];
+        signupInputs.forEach(id => {
+            const input = document.getElementById(id);
+            input.addEventListener('input', function() {
+                const wrapper = this.parentElement;
+                if (this.validity.valid && this.value.length >= (this.minLength || 1)) {
+                    wrapper.classList.add('valid');
+                } else {
+                    wrapper.classList.remove('valid');
+                }
+            });
+        });
+
+        // Password strength indicator
+        const signupPassword = document.getElementById('signup-password');
+        const strengthFill = document.querySelector('.strength-fill');
+
+        signupPassword.addEventListener('input', function() {
+            const password = this.value;
+            let strength = 0;
+
+            if (password.length >= 6) strength += 25;
+            if (password.length >= 10) strength += 25;
+            if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength += 25;
+            if (/[0-9]/.test(password) && /[^a-zA-Z0-9]/.test(password)) strength += 25;
+
+            strengthFill.style.width = strength + '%';
+            
+            if (strength <= 25) {
+                strengthFill.style.background = '#f44336';
+            } else if (strength <= 50) {
+                strengthFill.style.background = '#ff9800';
+            } else if (strength <= 75) {
+                strengthFill.style.background = '#ffc107';
+            } else {
+                strengthFill.style.background = '#4caf50';
+            }
+        });
+
+        // Login form submission
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+            const messageEl = document.getElementById('loginMessage');
+
+            if (username && password) {
+                messageEl.className = 'message success';
+                messageEl.textContent = `Welcome back, ${username}! Login successful.`;
+                messageEl.style.display = 'block';
+                
+                // Reset form after 2 seconds
+                setTimeout(() => {
+                    this.reset();
+                    messageEl.style.display = 'none';
+                }, 2000);
+            } else {
+                messageEl.className = 'message error';
+                messageEl.textContent = 'Please fill in all fields.';
+                messageEl.style.display = 'block';
+            }
+        });
+
+        // Signup form submission
+        document.getElementById('signupForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value;
+            const username = document.getElementById('signup-username').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('signup-password').value;
+            const messageEl = document.getElementById('signupMessage');
+
+            if (name && username && email && password) {
+                messageEl.className = 'message success';
+                messageEl.textContent = `Account created successfully! Welcome, ${name}!`;
+                messageEl.style.display = 'block';
+                
+                // Reset form and switch to login after 2 seconds
+                setTimeout(() => {
+                    this.reset();
+                    messageEl.style.display = 'none';
+                    document.querySelectorAll('.wrapper').forEach(w => w.classList.remove('valid'));
+                    strengthFill.style.width = '0';
+                }, 2000);
+            } else {
+                messageEl.className = 'message error';
+                messageEl.textContent = 'Please fill in all fields correctly.';
+                messageEl.style.display = 'block';
+            }
+        });
+
+        // Forgot password
+        document.getElementById('forgotPassword').addEventListener('click', function(e) {
+            e.preventDefault();
+            const messageEl = document.getElementById('loginMessage');
+            messageEl.className = 'message success';
+            messageEl.textContent = 'Password reset link sent to your email!';
+            messageEl.style.display = 'block';
+            
+            setTimeout(() => {
+                messageEl.style.display = 'none';
+            }, 3000);
+        });
+    </script>
+</body>
+</html>

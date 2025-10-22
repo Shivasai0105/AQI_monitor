@@ -1,74 +1,79 @@
-require('dotenv').config();
-const express = require("express");
-const path = require("path");
-const cors = require("cors");
-const { MongoClient } = require("mongodb");
-const axios = require("axios");
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const bodyParser = require('body-parser');
 const rateLimit = require('express-rate-limit');
-const createAuthRouter = require("./routes/auth");
+const dotenv = require('dotenv');
+const path = require('path');
+
+// Load environment variables
+dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.use(cors());
-app.use(express.json()); // Use built-in body parser instead of deprecated body-parser
-app.use(express.static(path.join(__dirname, 'landing_page')));
-app.use('/app', express.static(path.join(__dirname, 'public')));
+// MongoDB connection
+const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/mongo-signup';
 
-// Rate limiting for auth endpoints
-const authLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 5, // limit each IP to 5 requests per windowMs
-    message: 'Too many authentication attempts, please try again later.'
-});
-
-const uri = process.env.MONGODB_URI || "mongodb://localhost:27017";
-const client = new MongoClient(uri);
-
-async function run() {
+async function connectToMongo() {
     try {
-        await client.connect();
-        console.log("✅ Connected to Local MongoDB");
-        
-        const db = client.db("userDB");
-        const users = db.collection("users");
-
-        // Use modular auth routes
-        app.use("/", createAuthRouter(users));
-
-        app.get('/api/aqi', async (req, res) => {
-            const { lat, lon } = req.query;
-            const token = process.env.WAQI_API_TOKEN;
-            if (!token) {
-                return res.status(500).json({ message: "API token not configured" });
-            }
-            const url = `https://api.waqi.info/feed/geo:${lat};${lon}/?token=${token}`;
-
-            try {
-                const response = await axios.get(url);
-                res.json(response.data);
-            } catch (error) {
-                console.error("AQI API error:", error);
-                res.status(500).json({ message: "Error fetching AQI data" });
-            }
-        });
-
-        // Start server
-        app.listen(port, () => {
-            console.log(`🚀 Server running at http://localhost:${port}`);
-        });
-
-    } catch (err) {
-        console.error("❌ MongoDB connection error:", err);
-        process.exit(1);
+        await mongoose.connect(mongoUri);
+        console.log('Connected to MongoDB');
+        return mongoose.connection.db;
+    } catch (error) {
+        console.error('MongoDB connection error:', error);
+        // Graceful handling: log error but don't exit
+        return null;
     }
 }
 
-run().catch(console.dir);
+// Middleware
+app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-// Handle graceful shutdown
+// Rate limiting
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100 // limit each IP to 100 requests per windowMs
+});
+app.use(limiter);
+
+// Serve static files
+app.use(express.static(path.join(__dirname, 'landing_page', 'public')));
+
+// API routes
+const createAuthRouter = require('./landing_page/routes/auth');
+let db;
+connectToMongo().then(database => {
+    db = database;
+    const users = db.collection('users');
+    app.use('/api/auth', createAuthRouter(users));
+});
+
+// API endpoint to provide the API key
+app.get('/api/key', (req, res) => {
+    res.json({ apiKey: process.env.API_KEY });
+});
+
+// Serve the main page
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'landing_page', 'public', 'index.html'));
+});
+
+// Error handling
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).send('Something broke!');
+});
+
+app.listen(port, () => {
+    console.log(`Server running at http://localhost:${port}`);
+});
+
+// Graceful shutdown
 process.on('SIGINT', async () => {
-    console.log("\n🛑 Shutting down gracefully...");
-    await client.close();
+    await mongoose.connection.close();
+    console.log('MongoDB connection closed');
     process.exit(0);
 });
